@@ -18,7 +18,8 @@ public class Member {
   //   call next value 를 여러번 반복하면 성능 이슈가 발생할 수 있다. 이것을 allocationSize 를 사용해서 한번에 호출할때 50개씩 호출하여 가져와놓고 메모리에서 호출
   // - Table : 키 생성 전용 테이블을 만들어서 데이터베이스 시퀀스 전략을 흉내. 모든 데이터베이스에서 적용이 가능하지만 성능이 단점
   // - Auto : 자동으로 설정 db에 따라서
-  @GeneratedValue(strategy = GenerationType.IDENTITY)
+  @Id @GeneratedValue(strategy = GenerationType.AUTO)
+  @Column(name = "MEMBER_ID")
   private Long id;
 
   // DATABASE의 컬럼과 매핑
@@ -57,6 +58,24 @@ public class Member {
   // DB와 관련없이 사용하고싶을때, 메모리에서만 사용하고싶을때? 사용
   @Transient
   private int temp;
+
+//  @Column(name = "TEAM_ID")
+//  private Long teamId;
+  // 연관관계의 주인 ( Owner ) - 외래키가 있는 곳을 주인으로하는 것이 좋다.
+  // 객체의 두관계중 하나를 연관관계의 주인으로 지정
+  // mappedBy 가 되어있으면 주인이 될 수 없다.
+  // 연관관계 주인은 값의 수정/등록이 가능, 다른 한쪽은 읽기만 가능
+  @ManyToOne
+  @JoinColumn(name = "TEAM_ID")
+  private Team team;
+
+  public Team getTeam() {
+    return team;
+  }
+
+  public void setTeam(Team team) {
+    this.team = team;
+  }
 
   public Long getId() {
     return id;
