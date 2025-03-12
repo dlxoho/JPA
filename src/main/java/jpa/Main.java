@@ -41,8 +41,8 @@ public class Main {
 //      em.persist(member);
 
       // update
-      Member findMember = em.find(Member.class, 1L); // detail
-      findMember.setName("hello");
+//      Member findMember = em.find(Member.class, 1L); // detail
+//      findMember.setName("hello");
 
       // 준영속상태 (영속성 컨텍스트에서 제거)
 //    em.detach(findMember);
@@ -51,14 +51,31 @@ public class Main {
 
       // all list ( jpql )
       // select * 이 아니라 m 이유는 테이블이 아니라 Member(엔티티) 객체를 대상으로 조회하는것이기 때문
-      List<Member> result = em.createQuery("select m from Member as m", Member.class)
-        .setFirstResult(1) // limit 0,10
-        .setMaxResults(10)
-        .getResultList();
+//      List<Member> result = em.createQuery("select m from Member as m", Member.class)
+//        .setFirstResult(1) // limit 0,10
+//        .setMaxResults(10)
+//        .getResultList();
+//
+//      for (Member member : result) {
+//        System.out.println("member = " + member.getName());
+//      }
 
-      for (Member member : result) {
-        System.out.println("member = " + member.getName());
-      }
+      // 연관관계 저장
+      Team team = new Team("test");
+      em.persist(team);
+
+      Member member = new Member();
+      member.setName("test");
+      member.setTeam(team);
+      em.persist(member);
+
+      // 만약 영속콘텍스트의 1차 캐싱 데이터가 아니라 db에서 가져오고싶으면
+      em.flush();// 영속콘텍스트안에 있는것들 db 동기화
+      em.close(); // 영속콘텍스트 비워주기
+
+      Member findMember = em.find(Member.class, member.getId());
+      Team findTeam = findMember.getTeam();
+      List<Member> members = findMember.getTeam().getMembers();
 
       tx.commit();
     } catch (Exception e) {
