@@ -6,7 +6,7 @@ import java.time.LocalDateTime;
 import java.util.Date;
 
 @Entity
-public class Member {
+public class Member extends BaseEntity {
   // 기본키 매핑
   // @Id - 직접할당
   // @GeneratedValue - 자동할당
@@ -106,16 +106,8 @@ public class Member {
     this.roleType = roleType;
   }
 
-  public Date getCreatedDate() {
-    return createdDate;
-  }
-
   public void setCreatedDate(Date createdDate) {
     this.createdDate = createdDate;
-  }
-
-  public Date getLastModifiedDate() {
-    return lastModifiedDate;
   }
 
   public void setLastModifiedDate(Date lastModifiedDate) {
