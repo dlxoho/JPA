@@ -77,6 +77,31 @@ public class Main {
       Team findTeam = findMember.getTeam();
       List<Member> members = findMember.getTeam().getMembers();
 
+      // # 프록시
+      // em.find() : 데이터베이스를 통해서 실제 엔티티 객체 조회
+      // em.getReference() : 데이터베이스 조회를 미루는 가짜(프록시) 엔티티 객체를 조회
+      // 특징
+      // - 실제 클래스(원본 엔티티)를 상속받아서 만들어진다
+      // - 실제 클래스와 겉 모양은 같다
+      // - 사용자입장에선 진짜 객체인지 가짜 프록시 객체인지 구분하지않아도 된다.
+      // - 프록시 객체는 실제 객체의 참조(Target) 를 보관한다
+      // - 프록시 객체는 처음 사용할 때 한번만 초기화 (영속성컨텐스트 -> DB 조회 -> Entity 객체생성)
+      // - 프록시 객체가 초기화 된다고하고 실제 엔티티로 바뀌는 것이 아니라 실제 엔티티에 접근이 가능할 뿐(타입이 다르기에 == 비교가 아닌 instance of 를 사용)
+      // - 만약 영속성컨텍스트 안에 엔티티가 이미 존재하는 경우에는 getReference() 를 사용해도 실제 엔티티를 반환한다. => 하나의 트랙잭션 안에서는 같음을 보장해준다.
+      // - 위와 반대로 프록시로 조회하고 find() 로 조회하더라도 프록시로 조회된다.
+      // - 준영속 상태(영속성컨텍스트에서 관리하지않는)경우 프록시를 가져오지 못함
+      Member proxyMember = new Member();
+      proxyMember.setName("tester");
+      em.persist(proxyMember);
+
+      em.flush();
+      em.clear();
+
+      Member proxyFindMember = em.find(Member.class, proxyMember.getId());
+      Member proxyFindMember2 = em.getReference(Member.class, proxyMember.getId());
+
+      System.out.println("proxyFindMember = " + proxyFindMember);
+
       tx.commit();
     } catch (Exception e) {
       tx.rollback();
@@ -86,4 +111,5 @@ public class Main {
     }
     emf.close();
   }
+
 }
