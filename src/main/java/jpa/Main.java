@@ -1,9 +1,14 @@
 package jpa;
 
+import org.hibernate.Criteria;
+
 import javax.persistence.EntityManager;
 import javax.persistence.EntityManagerFactory;
 import javax.persistence.EntityTransaction;
 import javax.persistence.Persistence;
+import javax.persistence.criteria.CriteriaBuilder;
+import javax.persistence.criteria.CriteriaQuery;
+import javax.persistence.criteria.Root;
 import java.util.List;
 
 public class Main {
@@ -61,21 +66,21 @@ public class Main {
 //      }
 
       // 연관관계 저장
-      Team team = new Team("test");
-      em.persist(team);
-
-      Member member = new Member();
-      member.setName("test");
-      member.setTeam(team);
-      em.persist(member);
-
-      // 만약 영속콘텍스트의 1차 캐싱 데이터가 아니라 db에서 가져오고싶으면
-      em.flush();// 영속콘텍스트안에 있는것들 db 동기화
-      em.close(); // 영속콘텍스트 비워주기
-
-      Member findMember = em.find(Member.class, member.getId());
-      Team findTeam = findMember.getTeam();
-      List<Member> members = findMember.getTeam().getMembers();
+//      Team team = new Team("test");
+//      em.persist(team);
+//
+//      Member member = new Member();
+//      member.setName("test");
+//      member.setTeam(team);
+//      em.persist(member);
+//
+//      // 만약 영속콘텍스트의 1차 캐싱 데이터가 아니라 db에서 가져오고싶으면
+//      em.flush();// 영속콘텍스트안에 있는것들 db 동기화
+//      em.close(); // 영속콘텍스트 비워주기
+//
+//      Member findMember = em.find(Member.class, member.getId());
+//      Team findTeam = findMember.getTeam();
+//      List<Member> members = findMember.getTeam().getMembers();
 
       // # 프록시
       // em.find() : 데이터베이스를 통해서 실제 엔티티 객체 조회
@@ -90,17 +95,37 @@ public class Main {
       // - 만약 영속성컨텍스트 안에 엔티티가 이미 존재하는 경우에는 getReference() 를 사용해도 실제 엔티티를 반환한다. => 하나의 트랙잭션 안에서는 같음을 보장해준다.
       // - 위와 반대로 프록시로 조회하고 find() 로 조회하더라도 프록시로 조회된다.
       // - 준영속 상태(영속성컨텍스트에서 관리하지않는)경우 프록시를 가져오지 못함
-      Member proxyMember = new Member();
-      proxyMember.setName("tester");
-      em.persist(proxyMember);
+//      Member proxyMember = new Member();
+//      proxyMember.setName("tester");
+//      em.persist(proxyMember);
+//
+//      em.flush();
+//      em.clear();
+//
+//      Member proxyFindMember = em.find(Member.class, proxyMember.getId());
+//      Member proxyFindMember2 = em.getReference(Member.class, proxyMember.getId());
+//
+//      System.out.println("proxyFindMember = " + proxyFindMember);
 
-      em.flush();
-      em.clear();
+      // ## JPQL
+      // JPA는 SQL을 추상화한 JPQL이라는 객체 지향 쿼리 언어를 제공
+      // JPQL은 엔티티 객체를 대상으로 쿼리
+      // SQL은 데이터베이스 테이블을 대상으로 쿼리
+      List<Member> result = em.createQuery("select m from Member m where m.username like '%kim'", Member.class)
+          .getResultList();
 
-      Member proxyFindMember = em.find(Member.class, proxyMember.getId());
-      Member proxyFindMember2 = em.getReference(Member.class, proxyMember.getId());
+      // ## Criteria - JPQL은 동적쿼리를 처리하기는 좀 불편..
+      // but, 유지보수가 어려울듯 너무 복잡하다
+      CriteriaBuilder cb = em.getCriteriaBuilder();
+      CriteriaQuery<Member> query = cb.createQuery(Member.class);
+      Root<Member> m = query.from(Member.class);
+      CriteriaQuery<Member> cq = query.select(m).where(cb.equal(m.get("username"), "kim"));
+      List<Member> results = em.createQuery(cq)
+        .getResultList();
 
-      System.out.println("proxyFindMember = " + proxyFindMember);
+      // ## 네이티브 SQL
+      em.createNamedQuery("select MEMBER_ID,USERNAME from Member")
+          .getResultList();
 
       tx.commit();
     } catch (Exception e) {
